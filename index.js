@@ -165,6 +165,9 @@ passport.deserializeUser(function(user, done) {
     res.redirect('/');
   });
   
-  let server = http.listen(3000, () => {
-    console.log('server is running on port', 3000);
+
+  let port = process.env.PORT || 3000;
+
+  let server = http.listen(port, () => {
+    console.log('server is running on port', port);
   });
