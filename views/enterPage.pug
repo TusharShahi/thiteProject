@@ -1,0 +1,21 @@
+html
+  head
+    title Patient Chat
+  body
+    h1 Hello
+
+    #mainBox
+        #loginArea
+            form(action="/patientLogin" method='POST')
+                input(type="text" name='username' required)
+                input(type="password" name='password' required)
+                input(type="submit" text='SUBMIT') 
+            form(action="/doctorLogin" method='POST')
+                input(type="text" name='userName' required)
+                input(type="password" name='password' required)
+                input(type="submit" text='SUBMIT')
+        #registerArea
+            form(action="/login" method='POST')
+                input(type="text" name='userName' required)
+                input(type="password" name='password' required)
+                input(type="submit" text='SUBMIT')
