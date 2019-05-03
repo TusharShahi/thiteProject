@@ -2,20 +2,45 @@ html
   head
     title Patient Chat
   body
-    h1 Hello
+    h1 PatientChat
+    h2 Hospital Chat and Messaging System
 
+    style
+        include style.css
     #mainBox
         #loginArea
-            form(action="/patientLogin" method='POST')
-                input(type="text" name='username' required)
-                input(type="password" name='password' required)
-                input(type="submit" text='SUBMIT') 
-            form(action="/doctorLogin" method='POST')
-                input(type="text" name='userName' required)
-                input(type="password" name='password' required)
-                input(type="submit" text='SUBMIT')
+            #patientLogin
+                h2 Patient Login
+                form(action="/patientLogin" method='POST')
+                    input(type="text" name='username' placeholder="User name" required)
+                    input(type="password" name='password' placeholder="Password" required)
+                    input(type="submit" text='SUBMIT') 
+            #doctorLogin
+                h2 Doctor Login
+                form(action="/doctorLogin" method='POST')
+                    input(type="text" name='username' placeholder="User name" required)
+                    input(type="password" name='password' placeholder="Password" required)
+                    input(type="submit" text='SUBMIT')
         #registerArea
-            form(action="/login" method='POST')
-                input(type="text" name='userName' required)
-                input(type="password" name='password' required)
-                input(type="submit" text='SUBMIT')
+            #patientRegister
+                h2 Patient Signup
+                form(action="/patientRegister" method='POST')
+                    input(type="text" name='username' placeholder="User name" required)
+                    input(type="text" name='fullName' placeholder="Full name" required)
+                    input(type="number" name='age' placeholder="Age" required)
+                    input(type="password" name='password' placeholder="Password" required)
+                    select(name = "gender")
+                        option(value = "male") M
+                        option(value = "female") F
+                    input(type="submit" text='SUBMIT')
+            #patientRegister
+                h2 Doctor Signup
+                form(action="/doctorRegister" method='POST')
+                    input(type="text" name='username' placeholder="User name" required)
+                    input(type="text" name='fullName' placeholder="Full name" required)                    
+                    input(type="number" name='age' placeholder="Age" required)
+                    input(type="password" name='password' placeholder="Password" required)
+                    select(name = "department")
+                        option(value = "Skin") Skin
+                        option(value = "ENT") ENT
+                    input(type="submit" text='SUBMIT')

@@ -27,7 +27,8 @@ mongoose.connect(dbUrl ,(err) => {
 })
   
 let Patient = mongoose.model('Patient',{
-  name : String,
+  userName : String,
+  fullName : String,
   password : String,
   patientId : String,
   doctorName : String,
@@ -36,24 +37,26 @@ let Patient = mongoose.model('Patient',{
 },"Patients");
 
 
-const Doctor = mongoose.model('Doctor',{
+let Doctor = mongoose.model('Doctor',{
   name : String,
   password : String,
   doctorId : String,
   age : Number,
   gender : String,
   department : String 
+}, "Doctors");
+
+const Admin = mongoose.model('Admin',{
+  name : String,
+  password : String,
+  userName : String
 });
 
-
-let patients = null;
-
-  
   
 
   passport.use('patient-local',new LocalStrategy(
     function(username, password, done) {
-      Patient.find({'name' : username}, function (err, user) {
+      Patient.find({userName : username}, function (err, user) {
         if (err) { console.log(err); return done(err); }
         if (!user) { return done(null, false); }
         if (user && user.password == password) { return done(null, false); }
@@ -64,7 +67,7 @@ let patients = null;
 
   passport.use('doctor-local',new LocalStrategy(
     function(username, password, done) {
-      Doctor.findOne({ name: username }, function (err, user) {
+      Doctor.findOne({ userName: username }, function (err, user) {
         if (err) { return done(err); }
         if (!user) { return done(null, false); }
         if (user && user.password == password) { return done(null, false); }
@@ -73,7 +76,16 @@ let patients = null;
     }
   ));
 
-
+  passport.use('admin-local',new LocalStrategy(
+    function(username, password, done) {
+      Admins.findOne({ userName: username }, function (err, user) {
+        if (err) { return done(err); }
+        if (!user) { return done(null, false); }
+        if (user && user.password == password) { return done(null, false); }
+          return done(null, user);
+      });
+    }
+  ));
 
   passport.serializeUser(function(user, done) {
     done(null, user);
@@ -113,58 +125,152 @@ passport.deserializeUser(function(user, done) {
     }
   };
 
-  app.get("/home",(req,res,next)=>{
 
+  const userRedirect = function(req, res, next) {
     if(!_.isNil(req.user)){
-     if(!_.isNil(req.user.department))
-     {
-        res.redirect("/doctorPage");
+      if(!_.isNil(req.user.department))
+      {
+         res.redirect("/doctorPage");
+      }
+      else{
+         res.redirect("/patientPage");
+      }
      }
-     else{
-        res.redirect("/patientPage");
-     }
-    }
-    else {
-        res.redirect("/enterPage")
-    }
-  });
+     else {
+         res.render("enterPage");
+        return ;
+        } 
+        next();
+  };
 
-  app.get("/enterPage",(req,res,next)=>{
-
-    if(!_.isNil(req.user)){
-        if(!_.isNil(req.user.department))
-        {
-           res.redirect("/doctorPage");
-        }
-        else{
-           res.redirect("/patientPage");
-        }
-       }
-       else {
-            res.render('enterPage');
-
-    }
-
-
-  });
+  const checkIfDoctorExists = async function(req,res,next) {
+  let doctor = await  Doctor.findOne({ userName: req.body.username });
+  if(!_.isNil(doctor)){
+    req.flash('failure', {msg: 'Doctor with userName already exists'});
+    res.redirect('/enterPage');
+  }
+  next();
+  }
   
+  const checkIfPatientExists = async function(req,res,next) {
+    let patient = await Patient.findOne({ userName: req.user.username });
+    if(!_.isNil(patient)){
+      req.flash('failure', {msg: 'Patient with userName already exists'});
+      res.redirect('/');
+    }
+    next();
+    }
+
 
   app.post("/patientLogin",
   passport.authenticate('patient-local', { failureRedirect: '/login' }),
   function(req, res) {
-    res.redirect('/patientHome');
+    res.render('patientHome',req.user);
   });
   
   app.get("/patientHome",(req,res,next)=>{
     res.send("hey");
   });
   
+  app.post("/patientRegister",checkIfPatientExists,function(req,res){
+    let data = {
+        userName : req.body.username,
+        fullName : req.body.fullName,
+      password : req.body.password,
+      age : req.body.age,
+      gender : req.body.gender 
+    };
+  Patient.create(data, function (err) {
+    if (err){
+  return handleError(err);
+      } 
+      else{
+        console.log("saved patient");
+        res.render("patientHome",{ patientData : data});      } 
+    })});
   
+    app.post("/doctorRegister",checkIfDoctorExists,function(req,res){
+      let data = {
+        userName : req.body.username,
+        fullName : req.body.fullName,
+        password : req.body.password,
+        age : req.body.age,
+        department : req.body.department
+      };
+    Doctor.create(data, function (err) {
+      if (err){
+    return handleError(err);
+        } 
+        else{
+          console.log("saved doctor");
+          res.render("doctorHome",{ doctorData : data});
+        } 
+      })});
+
+
+      /*app.get("/doctorHome",function(req,res) {
+        if(req.user && req.user.department){
+
+        }
+        else{
+          res.render("enterPage");
+          return;
+        }
+
+      } );*/
+  
+
+
   app.get('/logout', function(req, res){
     req.logout();
     res.redirect('/');
   });
   
+
+  //Admin routes
+/*
+  app.get("/admin/homePage",
+  isAdminLoggedIn, (req,res)=>{
+    res.render("/adminHomePage");
+  });
+
+  app.get("/admin/settings",
+  isAdminLoggedIn, (req,res)=>{
+    res.render("/adminSettings");});
+
+  app.post("/admin/assignDoctor",isAdminLoggedIn,async (req,res)=>
+  {
+    if(!_.isNil(req.body.patient) && !_.isNil(req.body.doctor)){
+        let patientName = req.body.patient;
+        let doctorName = req.body.doctor;
+
+     let patient = await Patient.findOne({name: patientName});
+     if(!_.isNil(patient)){
+     let doctor = await Doctor.findOne({name: doctorName});
+    if(!_.isNil(doctor)){
+        patient.doctorName = doctor.userName;
+        res.send("done");
+      }
+    } 
+  } });
+  
+app.post("/admin/changeUserPassword",isAdminLoggedIn,(req,res)=>{
+});
+
+    app.post("/admin/login",
+  passport.authenticate('admin-local', { failureRedirect: '/admin/homePage' }),
+  function(req, res) {
+    res.redirect('/patientHome');
+    return;
+  });
+
+  */
+
+
+  app.get('*', userRedirect ,function(req, res) {
+    res.render("enterPage");
+  });
+
 
   let port = process.env.PORT || 3000;
 
