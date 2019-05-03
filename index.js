@@ -38,11 +38,11 @@ let Patient = mongoose.model('Patient',{
 
 
 let Doctor = mongoose.model('Doctor',{
-  name : String,
+  userName : String,
+  fullName : String,
   password : String,
   doctorId : String,
   age : Number,
-  gender : String,
   department : String 
 }, "Doctors");
 
@@ -56,7 +56,7 @@ const Admin = mongoose.model('Admin',{
 
   passport.use('patient-local',new LocalStrategy(
     function(username, password, done) {
-      Patient.find({userName : username}, function (err, user) {
+      Patient.findOne({userName : username}, function (err, user) {
         if (err) { console.log(err); return done(err); }
         if (!user) { return done(null, false); }
         if (user && user.password == password) { return done(null, false); }
@@ -130,10 +130,12 @@ passport.deserializeUser(function(user, done) {
     if(!_.isNil(req.user)){
       if(!_.isNil(req.user.department))
       {
-         res.redirect("/doctorPage");
+         res.render("doctorHome",{doctorData : req.user});
+         return ;
       }
       else{
-         res.redirect("/patientPage");
+         res.render("patientHome",{patientData : req.user});
+         return ;
       }
      }
      else {
@@ -167,6 +169,14 @@ passport.deserializeUser(function(user, done) {
   function(req, res) {
     res.render('patientHome',req.user);
   });
+
+
+  app.post("/doctorLogin",
+  passport.authenticate('doctor-local', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.render('doctorHome',req.user);
+  });
+
   
   app.get("/patientHome",(req,res,next)=>{
     res.send("hey");
