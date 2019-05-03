@@ -4,8 +4,6 @@ html
   body
     h1 PatientChat
     h2 Hospital Chat and Messaging System
-
-    script.
         
     
     
@@ -14,3 +12,6 @@ html
             #chatBox
         if doctorData
           p #{doctorData.userName}
+
+    form(action="/logout" method='GET')
+      input(type="submit" value='LOGOUT')

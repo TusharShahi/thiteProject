@@ -14,3 +14,7 @@ html
             #chatBox
         if patientData
           p #{patientData.userName}
+
+
+    form(action="/logout" method='GET')
+      input(type="submit" value='LOGOUT')

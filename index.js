@@ -59,7 +59,7 @@ const Admin = mongoose.model('Admin',{
       Patient.findOne({userName : username}, function (err, user) {
         if (err) { console.log(err); return done(err); }
         if (!user) { return done(null, false); }
-        if (user && user.password == password) { return done(null, false); }
+        if (user && user.password != password) { return done(null, false); }
         return done(null, user);
       });
     }
@@ -70,7 +70,7 @@ const Admin = mongoose.model('Admin',{
       Doctor.findOne({ userName: username }, function (err, user) {
         if (err) { return done(err); }
         if (!user) { return done(null, false); }
-        if (user && user.password == password) { return done(null, false); }
+        if (user && user.password != password) { return done(null, false); }
           return done(null, user);
       });
     }
@@ -148,16 +148,16 @@ passport.deserializeUser(function(user, done) {
   const checkIfDoctorExists = async function(req,res,next) {
   let doctor = await  Doctor.findOne({ userName: req.body.username });
   if(!_.isNil(doctor)){
-    req.flash('failure', {msg: 'Doctor with userName already exists'});
+    //req.flash('failure', {msg: 'Doctor with userName already exists'});
     res.redirect('/enterPage');
   }
   next();
   }
   
   const checkIfPatientExists = async function(req,res,next) {
-    let patient = await Patient.findOne({ userName: req.user.username });
+    let patient = await Patient.findOne({ userName: req.body.username });
     if(!_.isNil(patient)){
-      req.flash('failure', {msg: 'Patient with userName already exists'});
+      //req.flash('failure', {msg: 'Patient with userName already exists'});
       res.redirect('/');
     }
     next();
@@ -167,14 +167,14 @@ passport.deserializeUser(function(user, done) {
   app.post("/patientLogin",
   passport.authenticate('patient-local', { failureRedirect: '/login' }),
   function(req, res) {
-    res.render('patientHome',req.user);
+    res.render('patientHome',{patientData :req.user});
   });
 
 
   app.post("/doctorLogin",
   passport.authenticate('doctor-local', { failureRedirect: '/login' }),
   function(req, res) {
-    res.render('doctorHome',req.user);
+    res.render('doctorHome',{ doctorData : req.user});
   });
 
   
