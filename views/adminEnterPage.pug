@@ -5,12 +5,21 @@ html
     h1#mainTitle PatientChat
     h2#subTitle Hospital Chat and Messaging System
 
-    style
-        include style.css
 
-    #mainBox
+    if success_messages.length>0
+        p#notification #{success_messages}
+    if error_messages.length>0
+        p#notification #{error_messages}
+    if message
+        if message.length>0
+            p#notification #{message}
+
+    style
+      include style.css
+
+    #mainBoxAdmin
         h2 Admin Login
-        form(action="/adminLogin" method='POST')
-            input(type="text" name='userName' placeholder="User name" required)
+        form(action="/admin/login" method='POST')
+            input(type="text" name='username' placeholder="User name" required)
             input(type="password" name='password' placeholder="Password" required)
             input(type="submit" text='SUBMIT') 

@@ -1,0 +1,47 @@
+html
+  head
+    title Patient Chat
+  body
+
+    style
+      include style.css
+
+    
+    h1#mainTitle PatientChat
+    h2#subTitle Hospital Chat and Messaging System
+
+    #mainBox
+        #patientsList
+          h1 Patients List
+          table
+            thead
+              th User Name
+              th Full Name
+              th Age
+              th Gender
+              th Assigned Doctor
+            tbody
+              each patient in patients
+                tr
+                  td #{patient.userName}
+                  td #{patient.fullName}
+                  td #{patient.age}
+                  td #{patient.gender}
+                  td #{patient.doctorName}
+        #doctorsList
+          h1 Doctors List
+          table
+            thead
+              th User Name
+              th Full Name
+              th Department
+            tbody
+              each doctor in doctors
+                tr
+                  td #{doctor.userName}
+                  td #{doctor.fullName}
+                  td #{doctor.department}
+
+
+    form(action="/logout" method='GET')
+      input(type="submit" value='LOGOUT')

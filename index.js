@@ -61,10 +61,9 @@ let Doctor = mongoose.model('Doctor', {
 }, "Doctors");
 
 const Admin = mongoose.model('Admin', {
-
   password: String,
   userName: String
-});
+},"Admins");
 
 
 
@@ -92,10 +91,10 @@ passport.use('doctor-local', new LocalStrategy(
 
 passport.use('admin-local', new LocalStrategy(
   function (userName, password, done) {
-    Admins.findOne({ userName: userName }, function (err, user) {
+    Admin.findOne({ userName: userName }, function (err, user) {
       if (err) { return done(err); }
       if (!user) { return done(null, false, { message: 'Admin does not exist' }); }
-      if (user && user.password == password) { return done(null, false, { message: 'Password is incorrect' }); }
+      if (user && user.password != password) { return done(null, false, { message: 'Password is incorrect' }); }
       return done(null, user);
     });
   }
@@ -243,30 +242,31 @@ app.post("/doctorRegister", checkIfDoctorExists, function (req, res) {
 
 
 
-app.get('/logout', function (req, res) {
-  req.logout();
-  res.redirect('/');
-});
 
 
 //Admin routes
 
 
-app.post("/adminLogin",
-  passport.authenticate('admin-local', { failureRedirect: '/admin/homePage' }),
-  function (req, res) {
-    res.render('adminHomePage', { admin: req.user });
+app.post("/admin/login",
+  passport.authenticate('admin-local', { failureRedirect: '/admin/login' }),
+  async  function (req, res) {
+    let doctors = await Doctor.find();
+    let patients =await  Patient.find();
+    
+    res.render('adminHome', { admin: req.user, patients : patients, doctors : doctors });
   });
 
 app.get("/admin/homePage",
-  isAdminLoggedIn, (req, res) => {
-    res.render("adminHomePage", { admin: req.user });
+  isAdminLoggedIn, async (req, res) => {
+    let doctors = await Doctor.find();
+    let patients = await Patient.find();
+    res.render("adminHome", { admin: req.user, patients : patients, doctors : doctors });
   });
 
 app.get("/admin/settings",
-  isAdminLoggedIn, (req, res) => {
-    let doctors = Doctor.find();
-    let patients = Patient.find();
+  isAdminLoggedIn, async  (req, res) => {
+    let doctors =await  Doctor.find();
+    let patients = await Patient.find();
     res.render("adminSettings", { admin: req.user, patients: patients, doctors: doctors });
   });
 
@@ -286,13 +286,25 @@ app.post("/admin/assignDoctor", isAdminLoggedIn, async (req, res) => {
   }
 });
 
-app.post("/admin/changeUserPassword", isAdminLoggedIn, (req, res) => {
+//app.post("/admin/changeUserPassword", isAdminLoggedIn, (req, res) => {
+//});
+
+
+
+app.get('/logout', function (req, res) {
+  req.logout();
+  res.redirect('/');
 });
 
 
 
-
-
+app.get("/admin/*",isAdminLoggedIn, async  function(req,res){
+  let errorMessage = req.flash('error');
+ 
+  let doctors = Doctor.find();
+  let patients = Patient.find();  
+  res.render("adminHome",{admin : admin, patients : patients , doctors : doctors});
+});
 
 app.get('*', userRedirect, function (req, res) {
   let errorMessage = req.flash('error');

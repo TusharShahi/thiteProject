@@ -7,9 +7,13 @@ html,body{
 
 }
 
-#mainDiv{
+#mainBoxAdmin{
     margin : 20px auto;
     text-align: center;
+    width: 30%;
+    background-color: #cecece;
+    padding: 20px;
+
 }
 
 
@@ -54,7 +58,7 @@ margin: 5px;
 }
 
 input:not([type='submit']){
-    background: #eee;
+    background: transparent;
     display: block;
     padding: 5px;
     border-width: 0 0 2px 0;
@@ -102,3 +106,19 @@ input[type='submit']{
 
 }
 
+table{
+    margin: 20px auto;
+    background: #eee;
+    padding: 10px;
+}
+
+table th{
+    color: #34495E;
+    font-size: 1.2em;
+}
+
+th,tr{
+    text-align: center;
+    padding: 10px;
+    margin: 2px;
+}
