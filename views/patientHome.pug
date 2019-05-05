@@ -2,19 +2,57 @@ html
   head
     title Patient Home
   body
-    h1 PatientChat
-    h2 Hospital Chat and Messaging System
 
+    style
+      include style.css
+
+    h1#mainTitle PatientChat
+    h2#subTitle Hospital Chat and Messaging System
+
+    script(src="/socket.io/socket.io.js")
+    
     script.
-        
+        var addMessage = function(text,sender){
+          var messageBox = document.createElement("DIV");
+          var id = sender + "Message";
+          messageBox.setAttribute("id",id);
+          var node = document.createElement("P");   
+          var textnode = document.createTextNode(text);   
+          node.appendChild(textnode);    
+          messageBox.appendChild(node);                       
+          document.getElementById("chatBox").appendChild(messageBox); 
+        };
+
+        var patientData = !{JSON.stringify(patientData)}
+
+        var userName = patientData.userName;
+        var queryString = 'userType=patient&userName='+userName ;
+        socket = io.connect('', {query: queryString });
+        socket.on("message",function(data){
+            addMessage(text,"received");
+        });
     
-    
+        let sendMessage = function(){
+         
+          var text = document.getElementById("messageText").value;
+          if(text!="")
+          {
+            addMessage(text,"sent");
+            socket.emit("sendMessage",{ 'text' : text});
+          }
+        };
+
+
     #mainBox
-        if userExists
-            #chatBox
         if patientData
           p #{patientData.userName}
 
+        #chatBox
 
+
+
+        #messageWindow
+         input(type="text" placeholder="Type...")#messageText
+         button(onclick='sendMessage()')#sendMessage Send  
     form(action="/logout" method='GET')
       input(type="submit" value='LOGOUT')

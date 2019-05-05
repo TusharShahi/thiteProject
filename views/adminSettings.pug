@@ -1,0 +1,20 @@
+html
+  head
+    title Admin Settings
+  body
+    h1#mainTitle PatientChat
+    h2#subTitle Hospital Chat and Messaging System
+
+    style
+        include style.css
+
+    #mainBox
+        #assignDoctor
+            form(action="/doctorAssign" method='POST')
+                select(name='patient')
+                    for patient in patients
+                        input(value=patient.userName) #{patient.fullName}
+                select(name='doctor')
+                    for doctor in doctors
+                        input(value=doctor.userName) #{doctor.fullName} 
+                input(type="submit" text='SUBMIT')

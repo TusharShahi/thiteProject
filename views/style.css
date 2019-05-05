@@ -1,3 +1,104 @@
-input{
-    display: block;
+html,body{
+    margin : 0;
+    padding : 0;
+    background :#34495E;
+    text-align:   center;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
 }
+
+#mainDiv{
+    margin : 20px auto;
+    text-align: center;
+}
+
+
+#mainTitle{
+    padding-top: 40px;
+    display: block;
+    font-size : 2em;
+    font-weight: 600;
+    color: #cecece;
+}
+
+#subTitle{
+    display: block;
+    font-size : 1.5em;
+    font-weight: 400;
+    color: #cecece;
+}
+
+#loginArea, #registerArea{
+    width: 80%;
+    margin: 10px auto;
+}
+
+#loginArea > div,#registerArea > div{
+    background: #eee;
+    padding: 20px;
+    display: inline-block;
+    width: 45%;
+    text-align : center;
+}
+
+#loginArea > div > form,#registerArea > div > form{
+
+    text-align : center;
+}
+
+
+label{
+color : #34495E;
+font-size: 1em;
+margin: 5px;
+}
+
+input:not([type='submit']){
+    background: #eee;
+    display: block;
+    padding: 5px;
+    border-width: 0 0 2px 0;
+    border-color: #34495E;
+    margin: 10px auto;
+}
+
+input[type='submit']{
+    background :#34495E;
+    color : #eee;
+    border : none;
+    padding: 5px 10px;
+    margin-top: 10px;
+
+}
+
+#notification{
+    width: 1000px;
+    border-radius: 2%;
+    background: tomato;
+    margin: 20px auto;
+    padding: 10px;
+    color: #eee;
+}
+
+#chatBox
+{
+    width: 50%;
+    background: #eee;
+    padding: 10px;
+    margin: 20px auto;
+    height: 300px;
+}
+
+#sentMessage,#receivedMessage{
+
+    background: #48C9B0;
+    color: #000;
+    font-size: 1em;
+    width: fit-content;
+
+}
+#sentMessage > p,#receivedMessage > p{
+    padding: 2px 4px;
+
+}
+

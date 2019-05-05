@@ -2,11 +2,21 @@ html
   head
     title Patient Chat
   body
-    h1 PatientChat
-    h2 Hospital Chat and Messaging System
-
     style
         include style.css
+
+    h1#mainTitle PatientChat
+    h2#subTitle Hospital Chat and Messaging System
+
+
+    if success_messages.length>0
+        p#notification #{success_messages}
+    if error_messages.length>0
+        p#notification #{error_messages}
+    if message
+        if message.length>0
+            p#notification #{message}
+
     #mainBox
         #loginArea
             #patientLogin
@@ -29,7 +39,8 @@ html
                     input(type="text" name='fullName' placeholder="Full name" required)
                     input(type="number" name='age' placeholder="Age" required)
                     input(type="password" name='password' placeholder="Password" required)
-                    select(name = "gender")
+                    label(for="gender") Gender
+                    select(name = "gender") 
                         option(value = "male") M
                         option(value = "female") F
                     input(type="submit" text='SUBMIT')
@@ -40,7 +51,9 @@ html
                     input(type="text" name='fullName' placeholder="Full name" required)                    
                     input(type="number" name='age' placeholder="Age" required)
                     input(type="password" name='password' placeholder="Password" required)
+                    label(name="department") Department
                     select(name = "department")
                         option(value = "Skin") Skin
                         option(value = "ENT") ENT
+                        option(value="Cardio") Cardio
                     input(type="submit" text='SUBMIT')
