@@ -1,6 +1,6 @@
 html
   head
-    title Doctor Home
+    title Patient Home
   body
 
     style
@@ -13,34 +13,50 @@ html
     
     script.
         var addMessage = function(text,sender){
+        //  window.alert("add message");
           var messageBox = document.createElement("DIV");
           var id = sender + "Message";
           messageBox.setAttribute("id",id);
-          var node = document.createElement("LI");   
+          var node = document.createElement("P");   
           var textnode = document.createTextNode(text);   
-          node.appendChild(textnode);                           
-          document.getElementById("chatBox").appendChild(node); 
+          node.appendChild(textnode);    
+          messageBox.appendChild(node);                       
+          document.getElementById("chatBox").appendChild(messageBox); 
         };
 
         var doctorData = !{JSON.stringify(doctorData)}
+        var id = !{JSON.stringify(id)}
 
         var userName = doctorData.userName;
-        var queryString = 'userType=doctor&userName='+userName;
+        var queryString = 'userType=doctor&userName='+userName +"&userId=" + id;
         socket = io.connect('', {query: queryString });
-        socket.on("message",function(data){
+        socket.on("message",function(text){
+           // window.alert("message");
             addMessage(text,"received");
+            socket.emit("saveMessage",{"text" : text, "type" : "received"});            
         });
 
+        socket.on("partnerAvailable",function(data){
+        //  window.alert("found partner");
+          socket.emit("addPartner",data);
+        });
         let sendMessage = function(){
-          window.alert("yes");
-          var text = document.getElementById("messageText");
+          
+          var text = document.getElementById("messageText").value;
           if(text!="")
           {
             addMessage(text,"sent");
-            socket.emit("sendMessage",text);
+            socket.emit("sendMessage",{ 'text' : text});
+             document.getElementById("messageText").value = "";
+              socket.emit("saveMessage",{"text" : text, "type" : "sent"});
           }
         };
-    
+
+        let disconnect = function(){
+          socket.emit("logout"); 
+          return true;
+        }
+
     #mainBox
         if doctorData
           p #{doctorData.userName}
@@ -51,6 +67,6 @@ html
 
         #messageWindow
          input(type="text" placeholder="Type...")#messageText
-         button(onclick='sendMessage()')#sendMessage Send    
-    form(action="/logout" method='GET')
+         button(onclick='return sendMessage()')#sendMessage Send    
+    form(action="/logout" onsubmit='disconnect()' method='GET')
       input(type="submit" value='LOGOUT')

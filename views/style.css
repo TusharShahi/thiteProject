@@ -106,6 +106,9 @@ input[type='submit']{
 
 }
 
+#receivedMessage{
+    background: tomato;
+}
 table{
     margin: 20px auto;
     background: #eee;

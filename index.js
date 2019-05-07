@@ -1,14 +1,19 @@
+let models =  require("./models");
+let passport = require("passport");
 let express = require('express');
 let app = express();
 let http = require('http').Server(app);
 let mongoose = require('mongoose');
-let passport = require('passport');
-let LocalStrategy = require('passport-local').Strategy;
+
 let bodyParser = require('body-parser');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
 let flash = require('connect-flash');
 let _ = require('lodash');
+
+const Patient = models.Patient;
+const Doctor = models.Doctor;
+const Admin = models.Admin;
 
 
 app.use(cookieParser('secret'));
@@ -22,7 +27,7 @@ app.use(session({ secret: 'tusharshahi' }));
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
-
+require('./passportConfig');
 
 app.use(function (req, res, next) {
   res.locals.success_messages = req.flash('success');
@@ -30,85 +35,17 @@ app.use(function (req, res, next) {
   next();
 });
 
-
 app.set('view engine', 'pug')
 
 
 const dbUrl = 'mongodb://tusharshahi:password8@ds155294.mlab.com:55294/patientchatapp'
 mongoose.connect(dbUrl, (err) => {
-
   console.log('mongodb connected', err);
 })
 
-let Patient = mongoose.model('Patient', {
-  userName: String,
-  fullName: String,
-  password: String,
-  patientId: String,
-  doctorName: String,
-  age: Number,
-  gender: String
-}, "Patients");
 
-
-let Doctor = mongoose.model('Doctor', {
-  userName: String,
-  fullName: String,
-  password: String,
-  doctorId: String,
-  age: Number,
-  department: String
-}, "Doctors");
-
-const Admin = mongoose.model('Admin', {
-  password: String,
-  userName: String
-},"Admins");
-
-
-
-passport.use('patient-local', new LocalStrategy(
-  function (userName, password, done) {
-    Patient.findOne({ userName: userName }, function (err, user) {
-      if (err) { console.log(err); return done(err); }
-      if (!user) { return done(null, false, { message: 'User does not exist' }); }
-      if (user && user.password != password) { return done(null, false, { message: 'Password is incorrect' }); }
-      return done(null, user);
-    });
-  }
-));
-
-passport.use('doctor-local', new LocalStrategy(
-  function (userName, password, done) {
-    Doctor.findOne({ userName: userName }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) { return done(null, false, { message: 'User does not exist' }); }
-      if (user && user.password != password) { return done(null, false, { message: 'Password is incorrect' }); }
-      return done(null, user);
-    });
-  }
-));
-
-passport.use('admin-local', new LocalStrategy(
-  function (userName, password, done) {
-    Admin.findOne({ userName: userName }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) { return done(null, false, { message: 'Admin does not exist' }); }
-      if (user && user.password != password) { return done(null, false, { message: 'Password is incorrect' }); }
-      return done(null, user);
-    });
-  }
-));
-
-passport.serializeUser(function (user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function (user, done) {
-  done(null, user);
-});
-
-
+let doctorsAvailable = [];
+let doctorsBeingWaitedFor = [];
 
 const isAdmin = (user) => {
   if (!_.isNil(user.adminId)) {
@@ -119,7 +56,7 @@ const isAdmin = (user) => {
 const userRedirect = function (req, res, next) {
   if (!_.isNil(req.user)) {
     if (!_.isNil(req.user.department)) {
-      res.render("doctorHome", { doctorData: req.user });
+      res.render("doctorHome", { doctorData: req.user , id : req.user.id});
       return;
     }
     else {
@@ -196,7 +133,7 @@ app.post("/patientLogin",
 app.post("/doctorLogin",
   passport.authenticate('doctor-local', { failureRedirect: '/enterPage', failureFlash: true }),
   function (req, res) {
-    res.render('doctorHome', { doctorData: req.user });
+    res.render('doctorHome', { doctorData: req.user , id : req.user.id});
   });
 
 
@@ -234,7 +171,7 @@ app.post("/doctorRegister", checkIfDoctorExists, function (req, res) {
     }
     else {
       console.log("saved doctor");
-      res.render("doctorHome", { doctorData: data });
+      res.render("doctorHome", { doctorData: data, id : req.user.id });
     }
   })
 });
@@ -313,10 +250,6 @@ app.get('*', userRedirect, function (req, res) {
 
 
 
-
-
-
-
 let port = process.env.PORT || 3000;
 
 let server = http.listen(port, () => {
@@ -327,16 +260,74 @@ const io = require('socket.io')(server);
 
 
 io.on('connection', (socket) => {
-  console.log("connection done");
+  console.log(socket.id + " has joined");
   console.log(socket.handshake.query.userType + ' ' + socket.handshake.query.userName + 'has joined');
+  if(socket.handshake.query.userType == 'patient')
+  {
+    
+    let doctorId =  socket.handshake.query.doctorId;
+    
+    if(!_.isNil(doctorId)){
 
+      let doctorAvailable = false;
+      for(let i = 0 ; i < doctorsAvailable.length;i++){
+        if(doctorsAvailable[i] == doctorId){
+          socket.emit("doctorAvailable");
+          let socketsList = io.sockets.sockets
+          for(let i=0;i< socketsList.length;i++){
+            if(socketsList[i].doctorId == doctorId){
+              let doctorSocketId = socketsList[i].id;
+              socket.partner = doctorSocketId;
+              io.to(doctorSocketId).emit("partnerAvailable",socket.id);
+              break;
+            }
 
+          }
+
+          doctorAvailable = true;
+          break;
+        }
+      }
+      
+      if(!doctorAvailable){
+        doctorsBeingWaitedFor.push({doctor : doctorId, patient : socket.id });
+      }
+
+    }
+    
+
+    socket.on('logout',()=>{
+      doctorsBeingWaitedFor = doctorsBeingWaitedFor.filter(function( obj ) {
+        return obj.patient !== socket.id;
+    });
+    });
+  
+  } 
+  else if(socket.handshake.query.userType == 'doctor'){
+    let userId = socket.handshake.query.userId;
+ 
+    socket.doctorId = userId;
+    doctorsAvailable.push(socket.doctorId);
+    
+    for(let  i = 0 ; i < doctorsBeingWaitedFor.length; i++){
+      if(doctorsBeingWaitedFor[i].doctor == socket.doctorId){
+        io.to(doctorsBeingWaitedFor[i].patient).emit("doctorAvailable");
+        io.to(doctorsBeingWaitedFor[i].patient).emit("partnerAvailable",socket.id);        
+        socket.partner = doctorsBeingWaitedFor[i].patient;      
+      }
+    }
+
+    socket.on('logout',()=>{
+      doctorsAvailable = doctorsAvailable.filter(function( obj ) {
+        return obj !== socket.doctorId;
+    });});
+   }
+
+   socket.on('addPartner',(partnerId)=>{
+    socket.partner = partnerId;   
+   });
   socket.on('sendMessage', (text) => {
-    console.log("received text" + text);
+    io.to(socket.partner).emit("message",text.text);
   });
 
-
-
 });
-
-

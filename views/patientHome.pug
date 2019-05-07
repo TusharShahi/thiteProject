@@ -13,6 +13,7 @@ html
     
     script.
         var addMessage = function(text,sender){
+         // window.alert("add message");
           var messageBox = document.createElement("DIV");
           var id = sender + "Message";
           messageBox.setAttribute("id",id);
@@ -25,27 +26,54 @@ html
 
         var patientData = !{JSON.stringify(patientData)}
 
+        var doctorId =  patientData.doctorId;        
         var userName = patientData.userName;
         var queryString = 'userType=patient&userName='+userName ;
+        if(doctorId){
+         queryString += '&doctorId=';
+         queryString+= doctorId;
+        }
         socket = io.connect('', {query: queryString });
-        socket.on("message",function(data){
+        socket.on("message",function(text){
+            //window.alert("message");
             addMessage(text,"received");
+            socket.emit("saveMessage",{"text" : text, "type" : "received"});
         });
     
+        socket.on("doctorAvailable",function(){
+          document.getElementById("doctorStatus").innerHTML = 'Doctor is online'
+        });
+
+        socket.on("doctorOffline",function(){
+          document.getElementById("doctorStatus").innerHTML = 'Doctor is offline'
+        });
+
+        socket.on("partnerAvailable",function(data){
+          //window.alert("found partner");
+          socket.emit("addPartner",data);
+        });
         let sendMessage = function(){
          
           var text = document.getElementById("messageText").value;
           if(text!="")
           {
             addMessage(text,"sent");
-            socket.emit("sendMessage",{ 'text' : text});
+            socket.emit("sendMessage",{ 'text' : text, "sender" : "patient", "mongoId" : patientData.id});
+             document.getElementById("messageText").value = "";
+              socket.emit("saveMessage",{"text" : text, "type" : "sent"});
           }
         };
+        let disconnect = function(){
 
+          socket.emit("logout"); 
+          return true;
+        }
 
     #mainBox
         if patientData
           p #{patientData.userName}
+
+        p#doctorStatus Doctor is offline
 
         #chatBox
 
@@ -54,5 +82,5 @@ html
         #messageWindow
          input(type="text" placeholder="Type...")#messageText
          button(onclick='sendMessage()')#sendMessage Send  
-    form(action="/logout" method='GET')
+    form(action="/logout" onsubmit='return disconnect()' method='GET')
       input(type="submit" value='LOGOUT')
