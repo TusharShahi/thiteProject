@@ -76,7 +76,7 @@ const userRedirect = function (req, res, next) {
 };
 
 const checkIfDoctorExists = async function (req, res, next) {
-  let doctor = await Doctor.findOne({ userName: req.body.userName });
+  let doctor = await Doctor.findOne({ userName: req.body.username });
   if (!_.isNil(doctor)) {
     req.flash('failure', 'This user name already exists');
     res.redirect("/enterPage");
@@ -86,7 +86,7 @@ const checkIfDoctorExists = async function (req, res, next) {
 }
 
 const checkIfPatientExists = async function (req, res, next) {
-  let patient = await Patient.findOne({ userName: req.body.userName });
+  let patient = await Patient.findOne({ userName: req.body.username });
   if (!_.isNil(patient)) {
     req.flash('failure', 'This user name already exists');
     res.redirect("/enterPage");
@@ -138,42 +138,36 @@ app.post("/doctorLogin",
 
 
 
-app.post("/patientRegister", checkIfPatientExists, function (req, res) {
+app.post("/patientRegister", checkIfPatientExists, async function (req, res) {
   let data = {
-    userName: req.body.userName,
+    userName: req.body.username,
     fullName: req.body.fullName,
     password: req.body.password,
     age: req.body.age,
     gender: req.body.gender
   };
-  Patient.create(data, function (err) {
-    if (err) {
-      return handleError(err);
-    }
-    else {
+  let savePatient = new Patient(data);
+  let newPatient = await savePatient.save();
+  if(!_.isNil(newPatient)){
       console.log("saved patient");
-      res.render("patientHome", { patientData: data });
+      res.render("patientHome", { patientData: data , id : data.id});
     }
-  })
 });
 
-app.post("/doctorRegister", checkIfDoctorExists, function (req, res) {
+app.post("/doctorRegister", checkIfDoctorExists,async function (req, res) {
   let data = {
-    userName: req.body.userName,
+    userName: req.body.username,
     fullName: req.body.fullName,
     password: req.body.password,
     age: req.body.age,
     department: req.body.department
   };
-  Doctor.create(data, function (err) {
-    if (err) {
-      return handleError(err);
-    }
-    else {
+  let saveDoctor = new Doctor(data);
+  let newDoctor = await saveDoctor.save();
+  if(!_.isNil(newDoctor)){
       console.log("saved doctor");
-      res.render("doctorHome", { doctorData: data, id : req.user.id });
+      res.render("doctorHome", { doctorData: data , id : data.id});
     }
-  })
 });
 
 
@@ -223,6 +217,36 @@ app.post("/admin/assignDoctor", isAdminLoggedIn, async (req, res) => {
   }
 });
 
+app.post("/admin/exchangeDoctor",isAdminLoggedIn,async(req,res)=> {
+
+  if (!_.isNil(req.body.patientOne) && !_.isNil(req.body.patientTwo)) {
+    let patientOneName = req.body.patientOne;
+    let patientTwoName = req.body.patientTwo;
+
+    let patientOne = await Patient.findOne({ name: patientOneName });
+    if (!_.isNil(patient)) {
+      let doctor = await Patient.findOne({ name: patientTwoName });
+      if (!_.isNil(doctor)) {
+        let temporaryDoctorName = patientOne.doctorName
+        patientOne.doctorName = patientTwo.doctorName; 
+        patientTwo.doctorName =  temporaryDoctorName;
+        
+        doctorsAvailable = doctorsAvailable.filter(function( obj ) {
+          return (obj !== patientOne.doctorName)&&(obj !== patientOne.doctorName) ;
+      });
+      
+      doctorsBeingWaitedFor = doctorsBeingWaitedFor.filter(function( obj ) {
+        return (obj.doctor !== patientOne.doctorName) && (obj.doctor !== patientOne.doctorName);
+    });
+
+        res.send("done");
+
+      }
+    }
+  }
+
+  
+});
 //app.post("/admin/changeUserPassword", isAdminLoggedIn, (req, res) => {
 //});
 
