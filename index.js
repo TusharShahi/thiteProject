@@ -319,6 +319,11 @@ io.on('connection', (socket) => {
 
     }
     
+    socket.on('emergency',(data)=>{
+      console.log("userName is  " + data.userName);
+      socket.broadcast.emit('patientEmergency',{'patientName' : data.userName});
+    });
+  
 
     socket.on('logout',()=>{
       doctorsBeingWaitedFor = doctorsBeingWaitedFor.filter(function( obj ) {

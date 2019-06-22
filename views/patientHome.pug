@@ -63,6 +63,10 @@ html
               socket.emit("saveMessage",{"text" : text, "type" : "sent"});
           }
         };
+
+        let sos = function(){
+          socket.emit("emergency",{ 'userName' :  userName});
+        }
         let disconnect = function(){
 
           socket.emit("logout"); 
@@ -84,3 +88,4 @@ html
          button(onclick='sendMessage()')#sendMessage Send  
     form(action="/logout" onsubmit='return disconnect()' method='GET')
       input(type="submit" value='LOGOUT')
+    button(onclick='sos()')#emergency SOS

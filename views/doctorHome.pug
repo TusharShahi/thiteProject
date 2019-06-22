@@ -12,6 +12,25 @@ html
     script(src="/socket.io/socket.io.js")
     
     script.
+        sub();
+        function sub()
+        {
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('service-worker.js')
+              .then(registration => {
+                console.log('Service Worker is registered', registration);
+              })
+              .catch(err => {
+                console.error('Registration failed:', err);
+              });
+            });
+          }
+        }
+        Notification.requestPermission(status => {
+          console.log('Notification permission status:', status);
+        });
+
         var addMessage = function(text,sender){
         //  window.alert("add message");
           var messageBox = document.createElement("DIV");
@@ -26,64 +45,37 @@ html
 
         var doctorData = !{JSON.stringify(doctorData)}
         var id = !{JSON.stringify(id)}
-
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('sw.js').then(function(reg) {
-            console.log('Service Worker Registered!', reg);
-
-            reg.pushManager.getSubscription().then(function(sub) {
-              if (sub === null) {
-                // Update UI to ask user to register for Push
-                console.log('Not subscribed to push service!');
-              } else {
-                // We have a subscription, update the database
-                console.log('Subscription object: ', sub);
-              }
-            });
-          })
-          .catch(function(err) {
-            console.log('Service Worker registration failed: ', err);
-          });
-        }
-
-        function subscribeUser() {
-          if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.ready.then(function(reg) {
-
-            reg.pushManager.subscribe({
-              userVisibleOnly: true
-            }).then(function(sub) {
-              console.log('Endpoint URL: ', sub.endpoint);
-            }).catch(function(e) {
-              if (Notification.permission === 'denied') {
-                console.warn('Permission for notifications was denied');
-              } else {
-                console.error('Unable to subscribe to push', e);
-              }
-            });
-          })
-          }
-        }
-
         
         var userName = doctorData.userName;
         var queryString = 'userType=doctor&userName='+userName +"&userId=" + id;
         socket = io.connect('', {query: queryString });
         socket.on("message",function(text){
-           // window.alert("message");
             addMessage(text,"received");
             socket.emit("saveMessage",{"text" : text, "type" : "received"});            
         });
 
         socket.on("partnerAvailable",function(data){
-        //  window.alert("found partner");
           socket.emit("addPartner",data);
         });
 
-        socket.on("emergency",function(data){
-          
+
+        socket.on("patientEmergency",function(data){
+          if (Notification.permission == 'granted') {
+            navigator.serviceWorker.getRegistration().then(reg => {
+              const options = {
+                body: 'First notification!',
+                icon: 'images/notification-flat.png',
+                vibrate: [100, 50, 100],
+                data: {
+                  dateOfArrival: Date.now(),
+                  primaryKey: 1
+                }
+              };
+              reg.showNotification('Patient ' + data.patientName + ' is having an emergency');
+            });
+          }
         });
-        
+
         let sendMessage = function(){
           
           var text = document.getElementById("messageText").value;
