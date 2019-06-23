@@ -12,7 +12,7 @@ let cookieParser = require('cookie-parser');
 let flash = require('connect-flash');
 let _ = require('lodash');
 
-let freeMailer = require('mailer');
+let freeMailer = require('./mailer');
 const Patient = models.Patient;
 const Doctor = models.Doctor;
 const Admin = models.Admin;
@@ -325,8 +325,8 @@ io.on('connection', (socket) => {
     socket.on('emergency',async (data)=>{
       console.log("userName is  " + data.userName);
       socket.broadcast.emit('patientEmergency',{'patientName' : data.userName});
-      let doctorEmails = await Doctor.find({}).select('email');
-      freeMailer.sendEmergencyEmails(doctorEmails,data.userName);
+      let doctors = await Doctor.find({}).select({'email' : 1});
+      freeMailer.sendEmergencyEmails(doctors,data.userName);
 
     });
   

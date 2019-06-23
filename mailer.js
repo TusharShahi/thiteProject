@@ -1,42 +1,50 @@
+let _ = require('lodash');
 const nodemailer = require("nodemailer");
 
-export const sendEmail = async (receiver,subject,emailBody) => {
+const sendEmail = async (receiver,subject,emailBody) => {
     
 let testAccount = await nodemailer.createTestAccount();
 
-let transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false, // true for 465, false for other ports
+let transporter = nodemailer.createTransport( {
+    service: 'Gmail',
     auth: {
-      user: testAccount.user, // generated ethereal user
-      pass: testAccount.pass // generated ethereal password
+        user: 'shahi.tushar8@gmail.com',
+        pass: 'kaleidosco'
     }
-  });
+});
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: 'tushki.shahi@gmail.com', // sender address
+    from: 'shahi.tushar8@gmail.com', // sender address
     to: receiver, // list of receivers
     subject: subject, // Subject line
-    text: emailBody // plain text body
-  });
+    text: emailBody, // plain text body
+    html : "<html>Emergency</html>"
+});
 
 }
 
 
-export const sendEmergencyEmails = async (doctorEmails, patientName) => {
+const sendEmergencyEmails = async (doctors, patientName) => {
 
 
-    for(let i = 0 ; i < doctorEmails.length; i++)
+    for(let i = 0 ; i < doctors.length; i++)
     {
+        if(!_.isNil(doctors[i].email)){
         try{
-       await  sendEmail(doctorEmails[i],patientName + " is having an emergency", "Patient has emergency");
+       await  sendEmail(doctors[i].email,patientName + " is having an emergency", "Patient has emergency");
                     
         }
         catch(e){
             console.log(e);
         }
+            
+    }
 
     }
+}
+
+module.exports = {
+    sendEmail : sendEmail,
+    sendEmergencyEmails : sendEmergencyEmails
 }
