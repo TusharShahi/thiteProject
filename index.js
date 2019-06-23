@@ -5,6 +5,9 @@ let app = express();
 let http = require('http').Server(app);
 let mongoose = require('mongoose');
 
+let crypto = require('crypto');
+
+const request = require('request');
 
 let bodyParser = require('body-parser');
 let session = require('express-session');
@@ -16,6 +19,14 @@ let freeMailer = require('./mailer');
 const Patient = models.Patient;
 const Doctor = models.Doctor;
 const Admin = models.Admin;
+
+
+var pushpad = require('pushpad');
+
+var project = new pushpad.Pushpad({
+  authToken: '8668db9c3ef88d455d80c1e1ffec8f4d',
+  projectId: 6809
+});
 
 
 app.use(cookieParser('secret'));
@@ -58,7 +69,7 @@ const isAdmin = (user) => {
 const userRedirect = function (req, res, next) {
   if (!_.isNil(req.user)) {
     if (!_.isNil(req.user.department)) {
-      res.render("doctorHome", { doctorData: req.user , id : req.user.id});
+      res.render("doctorHome", { doctorData: req.user , id : req.user.id , doctorHash : req.user.pushPadHash});
       return;
     }
     else {
@@ -135,7 +146,7 @@ app.post("/patientLogin",
 app.post("/doctorLogin",
   passport.authenticate('doctor-local', { failureRedirect: '/enterPage', failureFlash: true }),
   function (req, res) {
-    res.render('doctorHome', { doctorData: req.user , id : req.user.id});
+    res.render('doctorHome', { doctorData: req.user , id : req.user.id , doctorHash : req.user.pushPadHash});
   });
 
 
@@ -157,19 +168,23 @@ app.post("/patientRegister", checkIfPatientExists, async function (req, res) {
 });
 
 app.post("/doctorRegister", checkIfDoctorExists,async function (req, res) {
+  
+ let doctorHash =  crypto.createHmac('sha1', '8668db9c3ef88d455d80c1e1ffec8f4d').update(req.body.userName);
+  
   let data = {
     userName: req.body.username,
     fullName: req.body.fullName,
     password: req.body.password,
     age: req.body.age,
     department: req.body.department,
-    email : req.body.email
+    email : req.body.email,
+    pushPadHash : doctorHash
   };
   let saveDoctor = new Doctor(data);
   let newDoctor = await saveDoctor.save();
   if(!_.isNil(newDoctor)){
       console.log("saved doctor");
-      res.render("doctorHome", { doctorData: data , id : data.id});
+      res.render("doctorHome", { doctorData: data , id : data.id , doctorHash : pushPadHash});
     }
 });
 
@@ -324,11 +339,28 @@ io.on('connection', (socket) => {
     
     socket.on('emergency',async (data)=>{
       console.log("userName is  " + data.userName);
-      socket.broadcast.emit('patientEmergency',{'patientName' : data.userName});
-      let doctors = await Doctor.find({}).select({'email' : 1});
+      //socket.broadcast.emit('patientEmergency',{'patientName' : data.userName});
+      let doctors = await Doctor.find({});
       freeMailer.sendEmergencyEmails(doctors,data.userName);
-
-    });
+      let doctorIds = doctors.map((x) => x['userName']);
+      let validIds = doctorIds.filter((x) => !_.isNil(x));
+      let notification = {
+        "notification": {
+          "body": "Hello world",
+          "title": "My Website",
+          "target_url": "https://cryptic-ocean-55969.herokuapp.com/enterPage",
+          "ttl": 600,
+          "urgent": true,
+          "starred": false,
+        },
+        "uids": validIds,
+      }
+      let postAPI = 'https://pushpad.xyz/api/v1/projects/' + 6809 + '/notifications'
+      let response = await request.post(postAPI,{
+        json : notification
+      });
+      console.log(response);
+        });
   
 
     socket.on('logout',()=>{

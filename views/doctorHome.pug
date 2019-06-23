@@ -14,11 +14,12 @@ html
     script.
       (function(p,u,s,h,x){p.pushpad=p.pushpad||function(){(p.pushpad.q=p.pushpad.q||[]).push(arguments)};h=u.getElementsByTagName('head')[0];x=u.createElement('script');x.async=1;x.src=s;h.appendChild(x);})(window,document,'https://pushpad.xyz/pushpad.js');
 
-      pushpad('init', 6809);
+      pushpad('init', '6809');
 
 
     script.
 
+        
         var addMessage = function(text,sender){
         //  window.alert("add message");
           var messageBox = document.createElement("DIV");
@@ -35,6 +36,14 @@ html
         var id = !{JSON.stringify(id)}
         
         var userName = doctorData.userName;
+        var doctorHash = doctorData.pushPadHash;
+        if(typeof doctorHash !== 'undefined')
+          {
+            window.alert("asdasd");
+            pushpad('uid', userName, doctorHash);
+            pushpad('subscribe');
+          }
+        
         var queryString = 'userType=doctor&userName='+userName +"&userId=" + id;
         socket = io.connect('', {query: queryString });
         socket.on("message",function(text){
