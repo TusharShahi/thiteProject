@@ -12,24 +12,12 @@ html
     script(src="/socket.io/socket.io.js")
     
     script.
-        sub();
-        function sub()
-        {
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-              navigator.serviceWorker.register('service-worker.js')
-              .then(registration => {
-                console.log('Service Worker is registered', registration);
-              })
-              .catch(err => {
-                console.error('Registration failed:', err);
-              });
-            });
-          }
-        }
-        Notification.requestPermission(status => {
-          console.log('Notification permission status:', status);
-        });
+      (function(p,u,s,h,x){p.pushpad=p.pushpad||function(){(p.pushpad.q=p.pushpad.q||[]).push(arguments)};h=u.getElementsByTagName('head')[0];x=u.createElement('script');x.async=1;x.src=s;h.appendChild(x);})(window,document,'https://pushpad.xyz/pushpad.js');
+
+      pushpad('init', 6809);
+
+
+    script.
 
         var addMessage = function(text,sender){
         //  window.alert("add message");
@@ -60,21 +48,41 @@ html
 
 
         socket.on("patientEmergency",function(data){
-          if (Notification.permission == 'granted') {
-            navigator.serviceWorker.getRegistration().then(reg => {
-              const options = {
-                body: 'First notification!',
-                icon: 'images/notification-flat.png',
-                vibrate: [100, 50, 100],
-                data: {
-                  dateOfArrival: Date.now(),
-                  primaryKey: 1
-                }
-              };
-              reg.showNotification('Patient ' + data.patientName + ' is having an emergency');
+         
+            window.alert("yo");
+            pushpad('widget', {
+              prompt: true,
+              promptTitle: 'Subscribe to notifications',
+              promptMessage: 'Turn on the notifications for this website to receive the latest news and updates.',
+              promptButton: 'Subscribe',
+              promptDismiss: 'No thanks',
+              promptButtonColor: '#065FD4',
+              promptPosition: 'left',
+              bell: true,
+              bellSize: '60px',
+              bellBackgroundColor: '#D5333C',
+              bellPosition: 'left',
+              button: true,
+              buttonContainer: 'div#pushpad-subscribe',
+              buttonSubscribe: 'Subscribe',
+              buttonSubscribed: 'Subscribed',
+              buttonUnsubscribe: true,
+              buttonPadding: '1em',
+              buttonFontSize: 'medium',
+              buttonColor: '#FFF',
+              buttonBackgroundColor: '#D5333C',
+              buttonSubscribedColor: '#666',
+              buttonSubscribedBackgroundColor: '#EEE',
+              deniedTitle: 'Notifications are blocked',
+              deniedMessage: 'Please open your browser preferences or click the lock 🔒 near the address bar to change your notification preferences.',
+              margin: '1em',
+              fontFamily: 'verdana, sans-serif'
             });
-          }
+          
         });
+
+
+
 
         let sendMessage = function(){
           
