@@ -50,7 +50,8 @@ html
         socket.on("patientEmergency",function(data){
          
             window.alert("yo");
-            pushpad('widget', {
+            pushpad('widget');
+            /*pushpad('widget', {
               prompt: true,
               promptTitle: 'Subscribe to notifications',
               promptMessage: 'Turn on the notifications for this website to receive the latest news and updates.',
@@ -77,7 +78,7 @@ html
               deniedMessage: 'Please open your browser preferences or click the lock 🔒 near the address bar to change your notification preferences.',
               margin: '1em',
               fontFamily: 'verdana, sans-serif'
-            });
+            });*/
           
         });
 
