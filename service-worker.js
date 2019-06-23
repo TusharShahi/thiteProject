@@ -24,7 +24,7 @@ self.addEventListener('push', function(e) {
 
   self.addEventListener('notificationclick', event => {
 
-    clients.openWindow('localhost:3000/enterPage');
+    clients.openWindow('/enterPage');
   });
 
   self.addEventListener('notificationclose', event => {
