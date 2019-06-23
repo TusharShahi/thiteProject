@@ -16,7 +16,8 @@ let mongoose = require('mongoose');
   fullName: String,
   password: String,
   age: Number,
-  department: String
+  department: String,
+  email : String
 }, "Doctors");
 
  const Admin = mongoose.model('Admin', {

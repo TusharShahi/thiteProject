@@ -5,12 +5,14 @@ let app = express();
 let http = require('http').Server(app);
 let mongoose = require('mongoose');
 
+
 let bodyParser = require('body-parser');
 let session = require('express-session');
 let cookieParser = require('cookie-parser');
 let flash = require('connect-flash');
 let _ = require('lodash');
 
+let freeMailer = require('mailer');
 const Patient = models.Patient;
 const Doctor = models.Doctor;
 const Admin = models.Admin;
@@ -160,7 +162,8 @@ app.post("/doctorRegister", checkIfDoctorExists,async function (req, res) {
     fullName: req.body.fullName,
     password: req.body.password,
     age: req.body.age,
-    department: req.body.department
+    department: req.body.department,
+    email : req.body.email
   };
   let saveDoctor = new Doctor(data);
   let newDoctor = await saveDoctor.save();
@@ -319,9 +322,12 @@ io.on('connection', (socket) => {
 
     }
     
-    socket.on('emergency',(data)=>{
+    socket.on('emergency',async (data)=>{
       console.log("userName is  " + data.userName);
       socket.broadcast.emit('patientEmergency',{'patientName' : data.userName});
+      let doctorEmails = await Doctor.find({}).select('email');
+      freeMailer.sendEmergencyEmails(doctorEmails,data.userName);
+
     });
   
 
