@@ -2,7 +2,7 @@
   "name": "patientchatapp",
   "version": "1.0.0",
   "description": "",
-  "gcm_sender_id" : "35947453626",
+  "gcm_sender_id": "35947453626",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -17,6 +17,7 @@
     "express-session": "^1.16.1",
     "lodash": "^4.17.11",
     "mongoose": "^5.5.4",
+    "nodemailer": "^6.2.1",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "pug": "^2.0.3",
