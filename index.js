@@ -347,20 +347,28 @@ io.on('connection', (socket) => {
       let notification = {
         "notification": {
           "body": "Hello world",
-          "title": "My Website",
+          /*"title": "My Website",
           "target_url": "https://cryptic-ocean-55969.herokuapp.com/enterPage",
           "ttl": 600,
           "urgent": true,
-          "starred": false,
-        },
-        "uids": validIds,
+          "starred": false,*/
+        }
+        //,"uids": validIds,
       }
       let postAPI = 'https://pushpad.xyz/api/v1/projects/' + 6809 + '/notifications'
-      let response = await request.post(postAPI,{
-        json : notification
+      let response = await request.post({
+        headers: {
+
+          'Content-Type': 'application/json',
+           'Accept': 'application/json',
+           'Authorization': 'Token token="8668db9c3ef88d455d80c1e1ffec8f4d"'
+        },
+        url: postAPI,
+        body: JSON.stringify(notification)
       });
+
       console.log(response);
-        });
+      });
   
 
     socket.on('logout',()=>{
