@@ -344,16 +344,17 @@ io.on('connection', (socket) => {
       freeMailer.sendEmergencyEmails(doctors,data.userName);
       let doctorIds = doctors.map((x) => x['userName']);
       let validIds = doctorIds.filter((x) => !_.isNil(x));
+      let notificationBody =   data.userName + ' is having an emergency.';
       let notification = {
         "notification": {
-          "body": "Hello world",
+          "body": notificationBody,
           /*"title": "My Website",
           "target_url": "https://cryptic-ocean-55969.herokuapp.com/enterPage",
           "ttl": 600,
           "urgent": true,
           "starred": false,*/
         }
-        //,"uids": validIds,
+        ,"uids": validIds,
       }
       let postAPI = 'https://pushpad.xyz/api/v1/projects/' + 6809 + '/notifications'
       let response = await request.post({
